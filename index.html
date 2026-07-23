@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>AI Training Tracker — Yaks 2026</title>
+<style>
+/* ============================
+   RESET & BASE
+============================ */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0e17;--surface:#111729;--surface2:#1a2238;--border:#2a3550;
+  --text:#e2e8f0;--text-dim:#94a3b8;--text-muted:#64748b;
+  --accent:#22d3ee;--accent-dim:#0891b2;--accent-glow:rgba(34,211,238,0.15);
+  --green:#22c55e;--green-dim:#15803d;--green-glow:rgba(34,197,94,0.15);
+  --yellow:#fbbf24;--yellow-dim:#d97706;--yellow-glow:rgba(251,191,36,0.15);
+  --red:#ef4444;--red-dim:#b91c1c;--red-glow:rgba(239,68,68,0.15);
+  --blue:#3b82f6;--purple:#a78bfa;--pink:#ec4899;
+  --radius:14px;--radius-sm:8px;
+  --shadow:0 4px 24px rgba(0,0,0,0.4);
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Inter,sans-serif;
+  --mono:'SF Mono','Fira Code',Fira Code,monospace;
+}
+[data-theme="light"]{
+  --bg:#f0f4f8;--surface:#ffffff;--surface2:#f8fafc;--border:#e2e8f0;
+  --text:#0f172a;--text-dim:#475569;--text-muted:#94a3b8;
+  --accent:#0891b2;--accent-dim:#0e7490;--accent-glow:rgba(8,145,178,0.1);
+  --green:#16a34a;--green-dim:#15803d;--green-glow:rgba(22,163,74,0.1);
+  --yellow:#d97706;--yellow-dim:#b45309;--yellow-glow:rgba(217,119,6,0.1);
+  --red:#dc2626;--red-dim:#b91c1c;--red-glow:rgba(220,38,38,0.1);
+  --shadow:0 4px 24px rgba(0,0,0,0.08);
+}
+html{font-size:16px;-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--font);background:var(--bg);color:var(--text);
+  line-height:1.6;min-height:100vh;transition:background 0.3s,color 0.3s;
+  -webkit-tap-highlight-color:transparent;
+}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* ============================
+   LAYOUT
+============================ */
+.container{max-width:1280px;margin:0 auto;padding:0 16px}
+@media(min-width:768px){.container{padding:0 24px}}
+
+/* ============================
+   HEADER
+============================ */
+header{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:100;backdrop-filter:blur(12px);
+}
+.header-inner{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 0;gap:12px;flex-wrap:wrap;
+}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.15rem}
+.logo-icon{font-size:1.4rem}
+.logo span{color:var(--accent)}
+.header-actions{display:flex;gap:8px;align-items:center}
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 14px;border-radius:var(--radius-sm);
+  border:1px solid var(--border);background:var(--surface2);
+  color:var(--text);font-size:0.85rem;font-weight:600;
+  cursor:pointer;transition:all 0.2s;font-family:var(--font);
+  min-height:36px;
+}
+@media(hover:hover){.btn:hover{border-color:var(--accent);background:var(--accent-glow)}}
+.btn:active{transform:scale(0.96)}
+.btn-primary{background:var(--accent);color:#000;border-color:var(--accent)}
+@media(hover:hover){.btn-primary:hover{background:var(--accent-dim);border-color:var(--accent-dim)}}
+.btn-danger{border-color:var(--red-dim);color:var(--red)}
+@media(hover:hover){.btn-danger:hover{background:var(--red-glow);border-color:var(--red)}}
+.btn-sm{padding:5px 10px;font-size:0.78rem;min-height:32px}
+
+/* ============================
+   TABS
+============================ */
+.tabs{
+  display:flex;gap:2px;padding:0 16px;overflow-x:auto;
+  border-bottom:1px solid var(--border);background:var(--surface);
+  -webkit-overflow-scrolling:touch;
+}
+@media(min-width:768px){.tabs{padding:0 24px}}
+.tab{
+  padding:12px 16px;font-size:0.88rem;font-weight:600;
+  color:var(--text-muted);cursor:pointer;border:none;
+  background:none;border-bottom:2px solid transparent;
+  transition:all 0.2s;white-space:nowrap;font-family:var(--font);
+  min-height:44px;display:flex;align-items:center;gap:6px;
+}
+@media(hover:hover){.tab:hover{color:var(--text-dim)}}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:20px;height:20px;padding:0 6px;border-radius:10px;
+  font-size:0.7rem;font-weight:700;background:var(--surface2);color:var(--text-dim);
+}
+.tab.active .tab-badge{background:var(--accent-glow);color:var(--accent)}
+
+/* ============================
+   PANELS
+============================ */
+.panel{display:none;padding:20px 0 60px}
+.panel.active{display:block}
+.panel-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:20px;flex-wrap:wrap;gap:12px;
+}
+.panel-title{font-size:1.3rem;font-weight:700}
+.panel-subtitle{color:var(--text-dim);font-size:0.88rem;margin-top:4px}
+
+/* ============================
+   STATS GRID
+============================ */
+.stats-grid{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:12px;
+  margin-bottom:24px;
+}
+@media(min-width:768px){.stats-grid{grid-template-columns:repeat(4,1fr)}}
+.stat-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:18px;
+  transition:border-color 0.2s;
+}
+.stat-card:hover{border-color:var(--accent)}
+.stat-label{font-size:0.75rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;font-weight:600}
+.stat-value{font-size:1.8rem;font-weight:800;margin-top:4px;line-height:1.1}
+.stat-sub{font-size:0.78rem;color:var(--text-dim);margin-top:4px}
+.stat-icon{font-size:1.2rem;float:right;opacity:0.5}
+.stat-card.accent .stat-value{color:var(--accent)}
+.stat-card.green .stat-value{color:var(--green)}
+.stat-card.yellow .stat-value{color:var(--yellow)}
+.stat-card.red .stat-value{color:var(--red)}
+
+/* ============================
+   PROGRESS BARS
+============================ */
+.progress-section{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:18px;margin-bottom:24px;
+}
+.progress-title{font-size:0.9rem;font-weight:600;margin-bottom:12px}
+.progress-bar{
+  height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;
+}
+.progress-fill{
+  height:100%;border-radius:4px;transition:width 0.6s cubic-bezier(0.4,0,0.2,1);
+}
+.progress-fill.green{background:linear-gradient(90deg,var(--green-dim),var(--green))}
+.progress-fill.yellow{background:linear-gradient(90deg,var(--yellow-dim),var(--yellow))}
+.progress-fill.accent{background:linear-gradient(90deg,var(--accent-dim),var(--accent))}
+.progress-fill.red{background:linear-gradient(90deg,var(--red-dim),var(--red))}
+.progress-labels{
+  display:flex;justify-content:space-between;
+  font-size:0.75rem;color:var(--text-dim);margin-top:6px;
+}
+
+/* ============================
+   TABLE / CARDS
+============================ */
+.platform-list{display:flex;flex-direction:column;gap:12px}
+.platform-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);overflow:hidden;transition:border-color 0.2s;
+}
+@media(hover:hover){.platform-card:hover{border-color:var(--accent)}}
+.platform-card-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;cursor:pointer;gap:12px;flex-wrap:wrap;
+  touch-action:manipulation;
+}
+.platform-name{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1rem}
+.platform-tier{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:28px;height:28px;border-radius:50%;font-size:0.75rem;font-weight:700;
+  flex-shrink:0;
+}
+.tier-1{background:var(--green-glow);color:var(--green);border:1px solid var(--green-dim)}
+.tier-2{background:var(--yellow-glow);color:var(--yellow);border:1px solid var(--yellow-dim)}
+.tier-3{background:var(--accent-glow);color:var(--accent);border:1px solid var(--accent-dim)}
+.platform-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.status-pill{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:4px 10px;border-radius:20px;font-size:0.72rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:0.3px;
+}
+.status-not_applied{background:var(--surface2);color:var(--text-muted)}
+.status-applied{background:var(--blue);color:#fff}
+.status-assessment{background:var(--yellow-glow);color:var(--yellow)}
+.status-interview{background:var(--purple);color:#fff;background:rgba(167,139,250,0.2)}
+.status-approved{background:var(--green-glow);color:var(--green)}
+.status-working{background:var(--green);color:#fff}
+.status-rejected{background:var(--red-glow);color:var(--red)}
+.status-paused{background:var(--surface2);color:var(--text-dim)}
+.chevron{color:var(--text-muted);transition:transform 0.3s;font-size:0.8rem}
+.platform-card.expanded .chevron{transform:rotate(180deg)}
+.platform-body{
+  max-height:0;overflow:hidden;transition:max-height 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+.platform-card.expanded .platform-body{max-height:800px}
+.platform-body-inner{padding:0 18px 18px;border-top:1px solid var(--border)}
+.platform-detail{display:grid;grid-template-columns:1fr;gap:12px;padding-top:14px}
+@media(min-width:640px){.platform-detail{grid-template-columns:1fr 1fr}}
+.detail-item{display:flex;flex-direction:column;gap:3px}
+.detail-label{font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;font-weight:600}
+.detail-value{font-size:0.9rem;color:var(--text)}
+.detail-value.bold{font-weight:600}
+.detail-link{color:var(--accent);font-size:0.88rem;word-break:break-all}
+.platform-actions{
+  display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;
+  padding-top:14px;border-top:1px solid var(--border);
+}
+
+/* ============================
+   FORM
+============================ */
+.modal-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);
+  z-index:200;backdrop-filter:blur(4px);padding:16px;
+  overflow-y:auto;touch-action:manipulation;
+}
+.modal-overlay.show{display:flex;align-items:flex-start;justify-content:center}
+.modal{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);width:100%;max-width:560px;
+  margin:32px auto;box-shadow:var(--shadow);
+}
+.modal-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px;border-bottom:1px solid var(--border);
+}
+.modal-title{font-size:1.1rem;font-weight:700}
+.modal-close{
+  background:none;border:none;color:var(--text-muted);
+  font-size:1.4rem;cursor:pointer;padding:4px 8px;
+  min-height:36px;min-width:36px;
+}
+.modal-body{padding:20px;max-height:60vh;overflow-y:auto}
+.form-group{margin-bottom:14px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:480px){.form-row{grid-template-columns:1fr}}
+.form-label{display:block;font-size:0.8rem;font-weight:600;color:var(--text-dim);margin-bottom:5px}
+.form-input,.form-select,.form-textarea{
+  width:100%;padding:10px 12px;border-radius:var(--radius-sm);
+  border:1px solid var(--border);background:var(--surface2);
+  color:var(--text);font-size:0.9rem;font-family:var(--font);
+  transition:border-color 0.2s;min-height:40px;
+}
+.form-textarea{min-height:80px;resize:vertical}
+.form-input:focus,.form-select:focus,.form-textarea:focus{
+  outline:none;border-color:var(--accent);
+}
+.form-select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+.form-hint{font-size:0.75rem;color:var(--text-muted);margin-top:4px}
+.modal-footer{
+  display:flex;gap:8px;justify-content:flex-end;
+  padding:16px 20px;border-top:1px solid var(--border);
+}
+
+/* ============================
+   EARNINGS TAB
+============================ */
+.earnings-summary{margin-bottom:24px}
+.earnings-table{
+  width:100%;border-collapse:collapse;
+  background:var(--surface);border-radius:var(--radius);
+  overflow:hidden;border:1px solid var(--border);
+}
+.earnings-table th{
+  text-align:left;padding:12px 14px;font-size:0.72rem;
+  text-transform:uppercase;letter-spacing:0.4px;
+  color:var(--text-muted);font-weight:600;
+  background:var(--surface2);white-space:nowrap;
+}
+.earnings-table td{padding:12px 14px;font-size:0.88rem;border-top:1px solid var(--border)}
+.earnings-table tr:hover{background:var(--surface2)}
+.earnings-table .num{text-align:right;font-family:var(--mono);font-weight:600}
+.earnings-table .total-row{font-weight:700;border-top:2px solid var(--border);background:var(--surface2)}
+.earnings-table .total-row td{font-size:0.95rem}
+.empty-state{text-align:center;padding:40px 20px;color:var(--text-muted);font-size:0.9rem}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+/* ============================
+   TIMELINE
+============================ */
+.timeline{position:relative;padding-left:28px}
+.timeline::before{
+  content:'';position:absolute;left:8px;top:0;bottom:0;
+  width:2px;background:var(--border);
+}
+.timeline-item{position:relative;margin-bottom:20px}
+.timeline-dot{
+  position:absolute;left:-28px;top:4px;width:16px;height:16px;
+  border-radius:50%;border:3px solid var(--surface);
+  z-index:1;
+}
+.timeline-dot.green{background:var(--green)}
+.timeline-dot.yellow{background:var(--yellow)}
+.timeline-dot.red{background:var(--red)}
+.timeline-dot.blue{background:var(--blue)}
+.timeline-dot.accent{background:var(--accent)}
+.timeline-content{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:12px 16px;
+}
+.timeline-date{font-size:0.72rem;color:var(--text-muted);font-weight:600}
+.timeline-title{font-size:0.92rem;font-weight:600;margin-top:4px}
+.timeline-desc{font-size:0.82rem;color:var(--text-dim);margin-top:4px}
+
+/* ============================
+   CHARTS
+============================ */
+.chart-container{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:18px;margin-bottom:24px;
+}
+.chart-title{font-size:0.9rem;font-weight:600;margin-bottom:14px}
+.bar-chart{display:flex;flex-direction:column;gap:10px}
+.bar-row{display:grid;grid-template-columns:120px 1fr 60px;align-items:center;gap:10px}
+@media(max-width:520px){.bar-row{grid-template-columns:80px 1fr 50px;font-size:0.78rem}}
+.bar-label{font-size:0.82rem;color:var(--text-dim);font-weight:600;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-track{height:24px;background:var(--surface2);border-radius:6px;overflow:hidden;position:relative}
+.bar-fill{height:100%;border-radius:6px;transition:width 0.8s cubic-bezier(0.4,0,0.2,1)}
+.bar-value{font-size:0.82rem;font-weight:700;font-family:var(--mono);text-align:right}
+
+/* ============================
+   FILTERS
+============================ */
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.filter-chip{
+  padding:6px 12px;border-radius:20px;font-size:0.78rem;font-weight:600;
+  border:1px solid var(--border);background:var(--surface2);
+  color:var(--text-dim);cursor:pointer;transition:all 0.2s;
+  min-height:32px;font-family:var(--font);
+}
+@media(hover:hover){.filter-chip:hover{border-color:var(--accent)}}
+.filter-chip.active{background:var(--accent);color:#000;border-color:var(--accent)}
+
+/* ============================
+   RESPONSIVE
+============================ */
+@media(max-width:480px){
+  .stat-value{font-size:1.4rem}
+  .panel-title{font-size:1.1rem}
+  .platform-name{font-size:0.9rem}
+}
+
+/* ============================
+   FOOTER
+============================ */
+footer{
+  text-align:center;padding:20px;font-size:0.78rem;
+  color:var(--text-muted);border-top:1px solid var(--border);
+}
+
+/* ============================
+   ANIMATIONS
+============================ */
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.panel.active{animation:fadeIn 0.3s ease}
+.platform-card{animation:fadeIn 0.3s ease}
+.stat-card{animation:fadeIn 0.4s ease}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.6}}
+.pulse{animation:pulse 2s infinite}
+
+/* Print */
+@media print{.tabs,.header-actions,.platform-actions,.btn{display:none!important}.panel{display:block!important}}
+</style>
+</head>
+<body>
+
+<!-- ============================ HEADER ============================ -->
+<header>
+  <div class="container">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">🤖</span>
+        <span>AI Training Tracker</span>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-sm" id="themeToggle" onclick="toggleTheme()">🌙</button>
+        <button class="btn btn-sm" onclick="exportData()">📤 Export</button>
+        <label class="btn btn-sm" style="cursor:pointer">📥 Import<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
+        <button class="btn btn-primary btn-sm" onclick="openModal()">+ Add Platform</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ============================ TABS ============================ -->
+<nav class="tabs" id="tabs">
+  <button class="tab active" data-tab="dashboard" onclick="switchTab('dashboard')">📊 Dashboard</button>
+  <button class="tab" data-tab="platforms" onclick="switchTab('platforms')">Platforms <span class="tab-badge" id="platformCount">0</span></button>
+  <button class="tab" data-tab="earnings" onclick="switchTab('earnings')">💰 Earnings</button>
+  <button class="tab" data-tab="timeline" onclick="switchTab('timeline')">📅 Timeline</button>
+  <button class="tab" data-tab="analysis" onclick="switchTab('analysis')">📈 Analysis</button>
+</nav>
+
+<!-- ============================ DASHBOARD PANEL ============================ -->
+<div class="container">
+  <div class="panel active" id="panel-dashboard">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">Dashboard</div>
+        <div class="panel-subtitle">Overview of your AI training platform applications and earnings</div>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card accent">
+        <span class="stat-icon">📋</span>
+        <div class="stat-label">Total Platforms</div>
+        <div class="stat-value" id="statTotal">0</div>
+        <div class="stat-sub" id="statTotalSub">Tracking 0 platforms</div>
+      </div>
+      <div class="stat-card yellow">
+        <span class="stat-icon">⏳</span>
+        <div class="stat-label">In Progress</div>
+        <div class="stat-value" id="statInProgress">0</div>
+        <div class="stat-sub" id="statInProgressSub">Applied / Assessing / Interview</div>
+      </div>
+      <div class="stat-card green">
+        <span class="stat-icon">✅</span>
+        <div class="stat-label">Approved / Working</div>
+        <div class="stat-value" id="statApproved">0</div>
+        <div class="stat-sub" id="statApprovedSub">Earning or ready to earn</div>
+      </div>
+      <div class="stat-card green">
+        <span class="stat-icon">💵</span>
+        <div class="stat-label">Total Earned</div>
+        <div class="stat-value" id="statEarned">$0</div>
+        <div class="stat-sub" id="statEarnedSub">Across all platforms</div>
+      </div>
+    </div>
+
+    <div class="progress-section">
+      <div class="progress-title">Application Progress</div>
+      <div class="progress-bar"><div class="progress-fill accent" id="progressFill" style="width:0%"></div></div>
+      <div class="progress-labels">
+        <span id="progressText">0 of 0 platforms applied</span>
+        <span id="progressPct">0%</span>
+      </div>
+    </div>
+
+    <div class="chart-container">
+      <div class="chart-title">Potential Monthly Income by Platform (at 15 hrs/wk)</div>
+      <div class="bar-chart" id="potentialChart"></div>
+    </div>
+
+    <div class="chart-container">
+      <div class="chart-title">Status Breakdown</div>
+      <div class="bar-chart" id="statusChart"></div>
+    </div>
+  </div>
+
+  <!-- ============================ PLATFORMS PANEL ============================ -->
+  <div class="panel" id="panel-platforms">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">Platforms</div>
+        <div class="panel-subtitle">Track applications, assessments, interviews, and earnings</div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="openModal()">+ Add Platform</button>
+    </div>
+
+    <div class="filters" id="filters">
+      <button class="filter-chip active" data-filter="all" onclick="setFilter('all')">All</button>
+      <button class="filter-chip" data-filter="not_applied" onclick="setFilter('not_applied')">Not Applied</button>
+      <button class="filter-chip" data-filter="applied" onclick="setFilter('applied')">Applied</button>
+      <button class="filter-chip" data-filter="assessment" onclick="setFilter('assessment')">Assessment</button>
+      <button class="filter-chip" data-filter="interview" onclick="setFilter('interview')">Interview</button>
+      <button class="filter-chip" data-filter="approved" onclick="setFilter('approved')">Approved</button>
+      <button class="filter-chip" data-filter="working" onclick="setFilter('working')">Working</button>
+      <button class="filter-chip" data-filter="rejected" onclick="setFilter('rejected')">Rejected</button>
+    </div>
+
+    <div class="platform-list" id="platformList"></div>
+  </div>
+
+  <!-- ============================ EARNINGS PANEL ============================ -->
+  <div class="panel" id="panel-earnings">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">Earnings Tracker</div>
+        <div class="panel-subtitle">Log earnings per platform and track your monthly income</div>
+      </div>
+    </div>
+
+    <div class="stats-grid" style="grid-template-columns:repeat(2,1fr)">
+      <div class="stat-card green">
+        <span class="stat-icon">💵</span>
+        <div class="stat-label">Total Earned</div>
+        <div class="stat-value" id="earningsTotal">$0.00</div>
+        <div class="stat-sub">All time</div>
+      </div>
+      <div class="stat-card accent">
+        <span class="stat-icon">📅</span>
+        <div class="stat-label">This Month</div>
+        <div class="stat-value" id="earningsMonth">$0.00</div>
+        <div class="stat-sub" id="earningsMonthLabel">—</div>
+      </div>
+    </div>
+
+    <div style="overflow-x:auto">
+      <table class="earnings-table" id="earningsTable">
+        <thead>
+          <tr>
+            <th>Platform</th>
+            <th>Rate</th>
+            <th>Hours</th>
+            <th class="num">Earned</th>
+            <th>Date</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="earningsBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============================ TIMELINE PANEL ============================ -->
+  <div class="panel" id="panel-timeline">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">Activity Timeline</div>
+        <div class="panel-subtitle">Chronological log of all platform interactions</div>
+      </div>
+    </div>
+    <div class="timeline" id="timelineList"></div>
+  </div>
+
+  <!-- ============================ ANALYSIS PANEL ============================ -->
+  <div class="panel" id="panel-analysis">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">Income Analysis</div>
+        <div class="panel-subtitle">Projections and comparison across platforms</div>
+      </div>
+    </div>
+
+    <div class="chart-container">
+      <div class="chart-title">Hourly Rate Comparison</div>
+      <div class="bar-chart" id="rateChart"></div>
+    </div>
+
+    <div class="chart-container">
+      <div class="chart-title">Actual vs Potential Income (Monthly)</div>
+      <div class="bar-chart" id="vsChart"></div>
+    </div>
+
+    <div class="chart-container">
+      <div class="chart-title">Income Projection Scenarios</div>
+      <div style="overflow-x:auto;margin-top:14px">
+        <table class="earnings-table">
+          <thead>
+            <tr><th>Scenario</th><th>Hrs/wk</th><th>Avg Rate</th><th class="num">Monthly USD</th><th class="num">Monthly ₦</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Conservative (3 platforms, $20/hr)</td><td>15</td><td>$20/hr</td><td class="num">$1,200</td><td class="num">₦1.8M</td></tr>
+            <tr><td>Moderate (coding track, $35/hr)</td><td>20</td><td>$35/hr</td><td class="num">$2,800</td><td class="num">₦4.2M</td></tr>
+            <tr><td>Optimistic (domain expert, $60/hr)</td><td>15</td><td>$60/hr</td><td class="num">$3,600</td><td class="num">₦5.4M</td></tr>
+            <tr class="total-row"><td>Ceiling (DA + Handshake specialist)</td><td>20</td><td>$75/hr</td><td class="num">$6,000</td><td class="num">₦9M</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="chart-container">
+      <div class="chart-title">Your Strategic Advantage — Skill → Track → Pay</div>
+      <div style="overflow-x:auto;margin-top:14px">
+        <table class="earnings-table">
+          <thead>
+            <tr><th>Your Skill</th><th>Platform</th><th>Track</th><th class="num">Pay/hr</th><th>Why You Qualify</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Python (FastAPI, AbokiWise)</td><td>DataAnnotation, Mercor, Turing, Outlier</td><td>Coding / SWE</td><td class="num">$50–150</td><td>Production backend code, API design</td></tr>
+            <tr><td>GIS / Spatial (nasrda-gis)</td><td>Micro1, Alignerr, Handshake</td><td>Domain Expert</td><td class="num">$80–200</td><td>Specialized knowledge few have</td></tr>
+            <tr><td>ML/AI (3DGS, NIM, model deployment)</td><td>Micro1, Surge, Invisible</td><td>RLHF / Eval</td><td class="num">$30–100</td><td>Understand model training inside-out</td></tr>
+            <tr><td>Data Analysis (NGX, financial models)</td><td>DataAnnotation, Alignerr</td><td>Finance/Math</td><td class="num">$50–100</td><td>Quantitative reasoning, market analysis</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================ MODAL ============================ -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Add Platform</div>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editId">
+      <div class="form-group">
+        <label class="form-label">Platform Name *</label>
+        <input type="text" class="form-input" id="fName" placeholder="e.g. DataAnnotation.tech">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Tier</label>
+          <select class="form-select" id="fTier">
+            <option value="1">Tier 1 — Top Priority</option>
+            <option value="2">Tier 2 — Second Wave</option>
+            <option value="3">Tier 3 — Supplemental</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-select" id="fStatus">
+            <option value="not_applied">Not Applied</option>
+            <option value="applied">Applied</option>
+            <option value="assessment">Assessment</option>
+            <option value="interview">Interview</option>
+            <option value="approved">Approved</option>
+            <option value="working">Working</option>
+            <option value="rejected">Rejected</option>
+            <option value="paused">Paused</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Pay Range (min $/hr)</label>
+          <input type="number" class="form-input" id="fPayMin" placeholder="20" min="0" step="1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Pay Range (max $/hr)</label>
+          <input type="number" class="form-input" id="fPayMax" placeholder="100" min="0" step="1">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Application URL</label>
+        <input type="url" class="form-input" id="fUrl" placeholder="https://...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Payment Method</label>
+        <input type="text" class="form-input" id="fPayment" placeholder="PayPal, Payoneer, etc.">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Best Role / Track</label>
+        <input type="text" class="form-input" id="fRole" placeholder="Coding, Domain Expert, Generalist...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <textarea class="form-textarea" id="fNotes" placeholder="Assessment details, interview prep, contacts..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Date Applied</label>
+          <input type="date" class="form-input" id="fDateApplied">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date Approved</label>
+          <input type="date" class="form-input" id="fDateApproved">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-danger" id="deleteBtn" style="display:none" onclick="deletePlatform()">Delete</button>
+      <button class="btn btn-primary" onclick="savePlatform()">Save Platform</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================ EARNINGS MODAL ============================ -->
+<div class="modal-overlay" id="earningsModalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Log Earning</div>
+      <button class="modal-close" onclick="closeEarningsModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="eEditId">
+      <div class="form-group">
+        <label class="form-label">Platform *</label>
+        <select class="form-select" id="ePlatform"></select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Amount (USD) *</label>
+          <input type="number" class="form-input" id="eAmount" placeholder="150.00" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Hours Worked</label>
+          <input type="number" class="form-input" id="eHours" placeholder="10" min="0" step="0.5">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date *</label>
+        <input type="date" class="form-input" id="eDate">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <textarea class="form-textarea" id="eNotes" placeholder="Task type, project details..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeEarningsModal()">Cancel</button>
+      <button class="btn btn-danger" id="eDeleteBtn" style="display:none" onclick="deleteEarning()">Delete</button>
+      <button class="btn btn-primary" onclick="saveEarning()">Save</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    <p>AI Training Tracker · Built for Yaks · Data stored locally in your browser · <a href="https://github.com/salty-ai/ai-training-tracker" target="_blank">GitHub</a></p>
+  </div>
+</footer>
+
+<script>
+// ============================
+// DATA MODEL
+// ============================
+const STORAGE_KEY = 'ai_training_tracker_v1';
+const THEME_KEY = 'ai_training_tracker_theme';
+let platforms = [];
+let earnings = [];
+let currentFilter = 'all';
+let expandedCard = null;
+
+const DEFAULT_PLATFORMS = [
+  {name:"DataAnnotation.tech",tier:1,status:"not_applied",payMin:20,payMax:100,url:"https://app.dataannotation.tech/worker_signup",payment:"PayPal",role:"Coding ($50–100/hr), Generalist ($25–30/hr)",notes:"Coding track assessment takes 1–3 hrs. 10–20% pass rate. Merit-based.",dateApplied:"",dateApproved:""},
+  {name:"Outlier (Scale AI)",tier:1,status:"not_applied",payMin:15,payMax:50,url:"https://outlier.ai",payment:"PayPal, Bank",role:"Code review, Math/Reasoning, Writing",notes:"Nigeria explicitly accepted. Fastest onboarding. Select Code + Math tracks.",dateApplied:"",dateApproved:""},
+  {name:"Mercor",tier:1,status:"not_applied",payMin:16,payMax:200,url:"https://mercor.com/experts",payment:"Weekly (bank/Payoneer)",role:"AI Model Specialist, Engineering",notes:"20-min AI video interview. 3 retakes. Matched to multiple projects after.",dateApplied:"",dateApproved:""},
+  {name:"Handshake AI",tier:1,status:"not_applied",payMin:22,payMax:300,url:"https://joinhandshake.com/ai",payment:"Weekly pay",role:"Generalist ($22–30), Domain Expert ($80–150)",notes:"100+ open roles. Sign up → matched to projects. Weekly pay.",dateApplied:"",dateApproved:""},
+  {name:"Micro1",tier:1,status:"not_applied",payMin:30,payMax:175,url:"https://jobs.micro1.ai",payment:"Payoneer, PayPal, Bank",role:"RLHF, Domain Expert (GIS/ML)",notes:"AI-assisted technical interview. Emphasize GIS/ML domain expertise.",dateApplied:"",dateApproved:""},
+  {name:"Alignerr",tier:2,status:"not_applied",payMin:25,payMax:150,url:"https://alignerr.com/jobs",payment:"Per project",role:"Domain Expert ($35–125), Cognitive labeling",notes:"AI interviewer 'Zara' + background check. Backed by Labelbox.",dateApplied:"",dateApproved:""},
+  {name:"Turing",tier:2,status:"not_applied",payMin:40,payMax:150,url:"https://developers.turing.com/signup",payment:"Contract-based",role:"Python LLM Trainer, LLM Task Trainer",notes:"Hiring LLM Task Trainers in Nigeria (confirmed LinkedIn). Coding test + interview.",dateApplied:"",dateApproved:""},
+  {name:"Invisible Technologies",tier:2,status:"not_applied",payMin:30,payMax:200,url:"https://invisible.co",payment:"Per project",role:"SWE Infrastructure, Generalist",notes:"Long-term team projects. Selective onboarding. Hubstaff tracking.",dateApplied:"",dateApproved:""},
+  {name:"Surge AI",tier:2,status:"not_applied",payMin:15,payMax:50,url:"https://surgehq.ai/careers",payment:"Bank, partners",role:"LLM red-teaming, RLHF",notes:"Invite/referral ONLY. Network on Reddit r/AiTraining_Annotation or Discord.",dateApplied:"",dateApproved:""},
+  {name:"OneForma (Milky Way)",tier:3,status:"not_applied",payMin:10,payMax:30,url:"https://oneforma.com",payment:"PayPal, Payoneer",role:"Multilingual, Milky Way Project",notes:"Certification-based onboarding. Good for building experience.",dateApplied:"",dateApproved:""},
+  {name:"Welocalize (Raterlabs)",tier:3,status:"not_applied",payMin:10,payMax:16,url:"https://welocalize.com",payment:"PayPal, Bank",role:"Search quality rating, AI content evaluation",notes:"Entrance exam required. Stable long-term work.",dateApplied:"",dateApproved:""},
+  {name:"Mindrift",tier:3,status:"not_applied",payMin:6,payMax:25,url:"https://mindrift.io",payment:"PayPal, Wire",role:"Task-based AI training, LLM evaluation",notes:"Fastest approval. Good backup for immediate income.",dateApplied:"",dateApproved:""},
+  {name:"Remotasks (Scale)",tier:3,status:"not_applied",payMin:3,payMax:15,url:"https://remotasks.com",payment:"PayPal, Payoneer",role:"LiDAR labeling, text classification",notes:"Largest entry-level option. Pay varies by task queue.",dateApplied:"",dateApproved:""},
+  {name:"Appen Connect",tier:3,status:"not_applied",payMin:3,payMax:14,url:"https://appen.com",payment:"PayPal, Payoneer, Bank",role:"Search evaluation, transcription",notes:"Project-based. Work appears and disappears. Supplemental only.",dateApplied:"",dateApproved:""},
+  {name:"Prolific",tier:3,status:"not_applied",payMin:8,payMax:12,url:"https://prolific.com",payment:"PayPal, Direct deposit",role:"Survey-style AI data collection",notes:"Academic studies. $8/hr avg is platform minimum. Flexible.",dateApplied:"",dateApproved:""},
+  {name:"TELUS International AI",tier:3,status:"not_applied",payMin:10,payMax:20,url:"https://telusinternational.ai",payment:"PayPal, Payoneer",role:"Search evaluation, multilingual AI",notes:"Qualification test required. Stable work.",dateApplied:"",dateApproved:""},
+  {name:"SuperAnnotate",tier:3,status:"not_applied",payMin:17,payMax:40,url:"https://superannotate.com",payment:"Per project",role:"Domain expert annotation",notes:"SME Careers page. Medical, legal, coding annotation.",dateApplied:"",dateApproved:""}
+];
+
+// ============================
+// STORAGE
+// ============================
+function safeSetItem(key, val) {
+  try { localStorage.setItem(key, val); } catch(e) { console.warn('localStorage unavailable:', e); }
+}
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const data = JSON.parse(raw);
+      platforms = data.platforms || [];
+      earnings = data.earnings || [];
+    } else {
+      platforms = [...DEFAULT_PLATFORMS];
+      earnings = [];
+      save();
+    }
+  } catch(e) {
+    platforms = [...DEFAULT_PLATFORMS];
+    earnings = [];
+  }
+}
+function save() {
+  safeSetItem(STORAGE_KEY, JSON.stringify({platforms, earnings}));
+}
+
+// ============================
+// THEME
+// ============================
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme') || 'dark';
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  safeSetItem(THEME_KEY, next);
+  document.getElementById('themeToggle').textContent = next === 'dark' ? '🌙' : '☀️';
+  render();
+}
+function loadTheme() {
+  try {
+    const saved = localStorage.getItem(THEME_KEY) || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
+    document.getElementById('themeToggle').textContent = saved === 'dark' ? '🌙' : '☀️';
+  } catch(e) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+}
+
+// ============================
+// TABS
+// ============================
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
+  if (name === 'dashboard') renderDashboard();
+  if (name === 'platforms') renderPlatforms();
+  if (name === 'earnings') renderEarnings();
+  if (name === 'timeline') renderTimeline();
+  if (name === 'analysis') renderAnalysis();
+}
+
+// ============================
+// FILTERS
+// ============================
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.toggle('active', c.dataset.filter === f));
+  renderPlatforms();
+}
+
+// ============================
+// PLATFORM MODAL
+// ============================
+function openModal(id) {
+  const overlay = document.getElementById('modalOverlay');
+  document.getElementById('modalTitle').textContent = id ? 'Edit Platform' : 'Add Platform';
+  document.getElementById('editId').value = id || '';
+  document.getElementById('deleteBtn').style.display = id ? 'inline-flex' : 'none';
+
+  if (id) {
+    const p = platforms.find(p => p.id === id);
+    if (p) {
+      document.getElementById('fName').value = p.name || '';
+      document.getElementById('fTier').value = p.tier || 1;
+      document.getElementById('fStatus').value = p.status || 'not_applied';
+      document.getElementById('fPayMin').value = p.payMin || '';
+      document.getElementById('fPayMax').value = p.payMax || '';
+      document.getElementById('fUrl').value = p.url || '';
+      document.getElementById('fPayment').value = p.payment || '';
+      document.getElementById('fRole').value = p.role || '';
+      document.getElementById('fNotes').value = p.notes || '';
+      document.getElementById('fDateApplied').value = p.dateApplied || '';
+      document.getElementById('fDateApproved').value = p.dateApproved || '';
+    }
+  } else {
+    document.querySelectorAll('#modalOverlay input, #modalOverlay textarea, #modalOverlay select').forEach(el => {
+      if (el.id !== 'editId' && el.id !== 'fTier' && el.id !== 'fStatus') el.value = '';
+    });
+    document.getElementById('fTier').value = 1;
+    document.getElementById('fStatus').value = 'not_applied';
+  }
+  overlay.classList.add('show');
+}
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+function savePlatform() {
+  const id = document.getElementById('editId').value;
+  const data = {
+    name: document.getElementById('fName').value.trim(),
+    tier: parseInt(document.getElementById('fTier').value),
+    status: document.getElementById('fStatus').value,
+    payMin: parseFloat(document.getElementById('fPayMin').value) || 0,
+    payMax: parseFloat(document.getElementById('fPayMax').value) || 0,
+    url: document.getElementById('fUrl').value.trim(),
+    payment: document.getElementById('fPayment').value.trim(),
+    role: document.getElementById('fRole').value.trim(),
+    notes: document.getElementById('fNotes').value.trim(),
+    dateApplied: document.getElementById('fDateApplied').value,
+    dateApproved: document.getElementById('fDateApproved').value,
+  };
+  if (!data.name) { alert('Platform name is required'); return; }
+
+  if (id) {
+    const idx = platforms.findIndex(p => p.id === id);
+    if (idx >= 0) platforms[idx] = {...platforms[idx], ...data};
+  } else {
+    data.id = Date.now().toString(36) + Math.random().toString(36).substr(2,5);
+    data.createdAt = new Date().toISOString();
+    platforms.push(data);
+  }
+  save();
+  closeModal();
+  render();
+}
+function deletePlatform() {
+  const id = document.getElementById('editId').value;
+  if (!id) return;
+  if (!confirm('Delete this platform? This cannot be undone.')) return;
+  platforms = platforms.filter(p => p.id !== id);
+  save();
+  closeModal();
+  render();
+}
+
+// ============================
+// EARNINGS MODAL
+// ============================
+function openEarningsModal(id) {
+  const overlay = document.getElementById('earningsModalOverlay');
+  document.getElementById('eEditId').value = id || '';
+  document.getElementById('eDeleteBtn').style.display = id ? 'inline-flex' : 'none';
+
+  const sel = document.getElementById('ePlatform');
+  sel.innerHTML = platforms.filter(p => p.status === 'working' || p.status === 'approved').map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+
+  if (!sel.children.length) {
+    sel.innerHTML = platforms.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+  }
+
+  if (id) {
+    const e = earnings.find(e => e.id === id);
+    if (e) {
+      sel.value = e.platformId;
+      document.getElementById('eAmount').value = e.amount;
+      document.getElementById('eHours').value = e.hours || '';
+      document.getElementById('eDate').value = e.date;
+      document.getElementById('eNotes').value = e.notes || '';
+    }
+  } else {
+    document.getElementById('eAmount').value = '';
+    document.getElementById('eHours').value = '';
+    document.getElementById('eDate').value = new Date().toISOString().slice(0,10);
+    document.getElementById('eNotes').value = '';
+  }
+  overlay.classList.add('show');
+}
+function closeEarningsModal() {
+  document.getElementById('earningsModalOverlay').classList.remove('show');
+}
+function saveEarning() {
+  const id = document.getElementById('eEditId').value;
+  const data = {
+    platformId: document.getElementById('ePlatform').value,
+    amount: parseFloat(document.getElementById('eAmount').value) || 0,
+    hours: parseFloat(document.getElementById('eHours').value) || 0,
+    date: document.getElementById('eDate').value,
+    notes: document.getElementById('eNotes').value.trim(),
+  };
+  if (!data.platformId) { alert('Select a platform'); return; }
+  if (!data.amount) { alert('Amount is required'); return; }
+  if (!data.date) { alert('Date is required'); return; }
+
+  if (id) {
+    const idx = earnings.findIndex(e => e.id === id);
+    if (idx >= 0) earnings[idx] = {...earnings[idx], ...data};
+  } else {
+    data.id = Date.now().toString(36) + Math.random().toString(36).substr(2,5);
+    earnings.push(data);
+  }
+  save();
+  closeEarningsModal();
+  render();
+}
+function deleteEarning() {
+  const id = document.getElementById('eEditId').value;
+  if (!id) return;
+  if (!confirm('Delete this earning record?')) return;
+  earnings = earnings.filter(e => e.id !== id);
+  save();
+  closeEarningsModal();
+  render();
+}
+
+// ============================
+// RENDER: DASHBOARD
+// ============================
+function renderDashboard() {
+  const total = platforms.length;
+  const inProgress = platforms.filter(p => ['applied','assessment','interview'].includes(p.status)).length;
+  const approved = platforms.filter(p => ['approved','working'].includes(p.status)).length;
+  const applied = platforms.filter(p => p.status !== 'not_applied').length;
+  const totalEarned = earnings.reduce((s,e) => s + e.amount, 0);
+
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statTotalSub').textContent = `Tracking ${total} platforms`;
+  document.getElementById('statInProgress').textContent = inProgress;
+  document.getElementById('statInProgressSub').textContent = `${platforms.filter(p=>p.status==='applied').length} applied, ${platforms.filter(p=>p.status==='assessment').length} assessing, ${platforms.filter(p=>p.status==='interview').length} interviewing`;
+  document.getElementById('statApproved').textContent = approved;
+  document.getElementById('statApprovedSub').textContent = `${platforms.filter(p=>p.status==='working').length} actively working`;
+  document.getElementById('statEarned').textContent = '$' + totalEarned.toFixed(0);
+
+  const pct = total > 0 ? Math.round((applied / total) * 100) : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = `${applied} of ${total} platforms applied`;
+  document.getElementById('progressPct').textContent = pct + '%';
+
+  // Potential income chart (15 hrs/wk × 4.33 wks = 65 hrs/month)
+  const hrsPerMonth = 65;
+  const sorted = [...platforms].sort((a,b) => (b.payMax||0) - (a.payMax||0)).slice(0, 10);
+  const maxVal = Math.max(...sorted.map(p => (p.payMax||0) * hrsPerMonth), 1);
+  document.getElementById('potentialChart').innerHTML = sorted.map(p => {
+    const val = (p.payMax || 0) * hrsPerMonth;
+    const w = Math.round((val / maxVal) * 100);
+    const color = p.tier === 1 ? 'var(--green)' : p.tier === 2 ? 'var(--yellow)' : 'var(--accent)';
+    return `<div class="bar-row">
+      <div class="bar-label">${p.name.length > 16 ? p.name.slice(0,14)+'…' : p.name}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${w}%;background:${color}"></div></div>
+      <div class="bar-value">$${val.toLocaleString()}</div>
+    </div>`;
+  }).join('');
+
+  // Status breakdown
+  const statusCounts = {};
+  const statusLabels = {not_applied:'Not Applied',applied:'Applied',assessment:'Assessment',interview:'Interview',approved:'Approved',working:'Working',rejected:'Rejected',paused:'Paused'};
+  platforms.forEach(p => statusCounts[p.status] = (statusCounts[p.status]||0) + 1);
+  const maxCount = Math.max(...Object.values(statusCounts), 1);
+  const statusColors = {not_applied:'var(--text-muted)',applied:'var(--blue)',assessment:'var(--yellow)',interview:'var(--purple)',approved:'var(--green)',working:'var(--green)',rejected:'var(--red)',paused:'var(--text-dim)'};
+  document.getElementById('statusChart').innerHTML = Object.entries(statusCounts).sort((a,b) => b[1]-a[1]).map(([s,c]) => {
+    const w = Math.round((c / maxCount) * 100);
+    return `<div class="bar-row">
+      <div class="bar-label">${statusLabels[s]||s}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${w}%;background:${statusColors[s]||'var(--accent)'}"></div></div>
+      <div class="bar-value">${c}</div>
+    </div>`;
+  }).join('');
+}
+
+// ============================
+// RENDER: PLATFORMS
+// ============================
+function renderPlatforms() {
+  const list = document.getElementById('platformList');
+  const filtered = currentFilter === 'all' ? platforms : platforms.filter(p => p.status === currentFilter);
+  document.getElementById('platformCount').textContent = platforms.length;
+
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty-state">No platforms match this filter. <a href="#" onclick="setFilter('all');return false">Show all</a></div>`;
+    return;
+  }
+
+  const statusLabels = {not_applied:'Not Applied',applied:'Applied',assessment:'Assessment',interview:'Interview',approved:'Approved',working:'Working',rejected:'Rejected',paused:'Paused'};
+  const tierColors = {1:'tier-1',2:'tier-2',3:'tier-3'};
+
+  list.innerHTML = filtered.sort((a,b) => (a.tier||9) - (b.tier||9)).map(p => {
+    const id = p.id || '';
+    const expandClass = expandedCard === id ? 'expanded' : '';
+    const payStr = p.payMin && p.payMax ? `$${p.payMin}–$${p.payMax}/hr` : p.payMin ? `$${p.payMin}+/hr` : '—';
+    return `<div class="platform-card ${expandClass}" data-id="${id}">
+      <div class="platform-card-header" onclick="toggleExpand('${id}')">
+        <div class="platform-name">
+          <span class="platform-tier ${tierColors[p.tier]||'tier-3'}">${p.tier||'?'}</span>
+          ${p.name}
+        </div>
+        <div class="platform-meta">
+          <span class="status-pill status-${p.status}">${statusLabels[p.status]||p.status}</span>
+          <span style="font-size:0.8rem;color:var(--text-dim);font-weight:600">${payStr}</span>
+          <span class="chevron">▼</span>
+        </div>
+      </div>
+      <div class="platform-body">
+        <div class="platform-body-inner">
+          <div class="platform-detail">
+            <div class="detail-item">
+              <span class="detail-label">Pay Range</span>
+              <span class="detail-value bold">${payStr}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Best Role / Track</span>
+              <span class="detail-value">${p.role || '—'}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Payment Method</span>
+              <span class="detail-value">${p.payment || '—'}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Tier</span>
+              <span class="detail-value">${p.tier === 1 ? 'Tier 1 — Top Priority' : p.tier === 2 ? 'Tier 2 — Second Wave' : 'Tier 3 — Supplemental'}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Date Applied</span>
+              <span class="detail-value">${p.dateApplied || 'Not yet'}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Date Approved</span>
+              <span class="detail-value">${p.dateApproved || '—'}</span>
+            </div>
+            ${p.url ? `<div class="detail-item" style="grid-column:1/-1"><span class="detail-label">Application URL</span><a class="detail-link" href="${p.url}" target="_blank">${p.url}</a></div>` : ''}
+            ${p.notes ? `<div class="detail-item" style="grid-column:1/-1"><span class="detail-label">Notes</span><span class="detail-value">${p.notes}</span></div>` : ''}
+          </div>
+          <div class="platform-actions">
+            <button class="btn btn-sm btn-primary" onclick="event.stopPropagation();openModal('${id}')">✏️ Edit</button>
+            ${p.url ? `<a class="btn btn-sm" href="${p.url}" target="_blank" onclick="event.stopPropagation()">🔗 Open Site</a>` : ''}
+            <button class="btn btn-sm" onclick="event.stopPropagation();quickStatus('${id}','applied')">✅ Mark Applied</button>
+            <button class="btn btn-sm" onclick="event.stopPropagation();quickStatus('${id}','assessment')">📝 Mark Assessing</button>
+            <button class="btn btn-sm" onclick="event.stopPropagation();quickStatus('${id}','interview')">🎤 Mark Interview</button>
+            <button class="btn btn-sm" onclick="event.stopPropagation();quickStatus('${id}','approved')">🎉 Mark Approved</button>
+            <button class="btn btn-sm" onclick="event.stopPropagation();quickStatus('${id}','working')">💼 Mark Working</button>
+            <button class="btn btn-sm" onclick="event.stopPropagation();openEarningsModal();selectPlatform('${id}')">💰 Log Earning</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleExpand(id) {
+  expandedCard = expandedCard === id ? null : id;
+  renderPlatforms();
+}
+
+function selectPlatform(id) {
+  setTimeout(() => {
+    const sel = document.getElementById('ePlatform');
+    sel.value = id;
+  }, 50);
+}
+
+function quickStatus(id, status) {
+  const p = platforms.find(p => p.id === id);
+  if (!p) return;
+  p.status = status;
+  if (status === 'applied' && !p.dateApplied) p.dateApplied = new Date().toISOString().slice(0,10);
+  if (status === 'approved' && !p.dateApproved) p.dateApproved = new Date().toISOString().slice(0,10);
+  save();
+  render();
+}
+
+// ============================
+// RENDER: EARNINGS
+// ============================
+function renderEarnings() {
+  const total = earnings.reduce((s,e) => s + e.amount, 0);
+  const now = new Date();
+  const monthStr = now.toLocaleString('default', {month:'long', year:'numeric'});
+  const monthEarned = earnings.filter(e => {
+    const d = new Date(e.date);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }).reduce((s,e) => s + e.amount, 0);
+
+  document.getElementById('earningsTotal').textContent = '$' + total.toFixed(2);
+  document.getElementById('earningsMonth').textContent = '$' + monthEarned.toFixed(2);
+  document.getElementById('earningsMonthLabel').textContent = monthStr;
+
+  const body = document.getElementById('earningsBody');
+  if (!earnings.length) {
+    body.innerHTML = `<tr><td colspan="6" class="empty-state">No earnings logged yet. Click "Log Earning" to start tracking your income.</td></tr>`;
+    return;
+  }
+
+  const sorted = [...earnings].sort((a,b) => new Date(b.date) - new Date(a.date));
+  body.innerHTML = sorted.map(e => {
+    const p = platforms.find(p => p.id === e.platformId);
+    const rate = e.hours > 0 ? '$' + (e.amount / e.hours).toFixed(2) : '—';
+    return `<tr>
+      <td>${p ? p.name : 'Unknown'}</td>
+      <td>${rate}</td>
+      <td>${e.hours || '—'}</td>
+      <td class="num">$${e.amount.toFixed(2)}</td>
+      <td>${e.date}</td>
+      <td><button class="btn btn-sm" onclick="openEarningsModal('${e.id}')">Edit</button></td>
+    </tr>`;
+  }).join('') + `<tr class="total-row">
+    <td>Total</td><td>—</td><td>${earnings.reduce((s,e)=>s+(e.hours||0),0).toFixed(1)}</td>
+    <td class="num">$${total.toFixed(2)}</td><td></td><td></td>
+  </tr>`;
+}
+
+// ============================
+// RENDER: TIMELINE
+// ============================
+function renderTimeline() {
+  const events = [];
+
+  platforms.forEach(p => {
+    if (p.dateApplied) events.push({date:p.dateApplied, title:`Applied to ${p.name}`, desc:p.notes || 'Application submitted', status:'blue', type:'applied', platform:p.name});
+    if (p.dateApproved) events.push({date:p.dateApproved, title:`Approved by ${p.name}`, desc:'Ready to start working', status:'green', type:'approved', platform:p.name});
+    if (p.status === 'rejected') events.push({date:p.dateApplied || new Date().toISOString().slice(0,10), title:`Rejected by ${p.name}`, desc:'Application or assessment not passed', status:'red', type:'rejected', platform:p.name});
+  });
+
+  earnings.forEach(e => {
+    const p = platforms.find(p => p.id === e.platformId);
+    events.push({date:e.date, title:`Earned $${e.amount.toFixed(2)} from ${p?p.name:'Unknown'}`, desc:e.hours ? `${e.hours} hrs at $${(e.amount/e.hours).toFixed(2)}/hr` : '', status:'green', type:'earning', platform:p?p.name:''});
+  });
+
+  events.sort((a,b) => new Date(b.date) - new Date(a.date));
+
+  const list = document.getElementById('timelineList');
+  if (!events.length) {
+    list.innerHTML = `<div class="empty-state">No activity yet. Apply to platforms and log earnings to build your timeline.</div>`;
+    return;
+  }
+
+  list.innerHTML = events.map(e => {
+    const d = new Date(e.date);
+    const dateStr = d.toLocaleDateString('en-US', {year:'numeric', month:'short', day:'numeric'});
+    return `<div class="timeline-item">
+      <div class="timeline-dot ${e.status}"></div>
+      <div class="timeline-content">
+        <div class="timeline-date">${dateStr}</div>
+        <div class="timeline-title">${e.title}</div>
+        ${e.desc ? `<div class="timeline-desc">${e.desc}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ============================
+// RENDER: ANALYSIS
+// ============================
+function renderAnalysis() {
+  // Rate comparison
+  const sorted = [...platforms].filter(p => p.payMax > 0).sort((a,b) => b.payMax - a.payMax);
+  const maxRate = Math.max(...sorted.map(p => p.payMax), 1);
+  document.getElementById('rateChart').innerHTML = sorted.map(p => {
+    const w = Math.round((p.payMax / maxRate) * 100);
+    const color = p.tier === 1 ? 'var(--green)' : p.tier === 2 ? 'var(--yellow)' : 'var(--accent)';
+    return `<div class="bar-row">
+      <div class="bar-label">${p.name.length > 16 ? p.name.slice(0,14)+'…' : p.name}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${w}%;background:${color}"></div></div>
+      <div class="bar-value">$${p.payMax}</div>
+    </div>`;
+  }).join('');
+
+  // Actual vs Potential
+  const hrsPerMonth = 65;
+  const working = platforms.filter(p => p.status === 'working' || p.status === 'approved');
+  const bars = [];
+  working.forEach(p => {
+    const actual = earnings.filter(e => e.platformId === p.id).reduce((s,e) => s + e.amount, 0);
+    const potential = (p.payMax || 0) * hrsPerMonth;
+    bars.push({name:p.name, actual, potential, payMax:p.payMax||0});
+  });
+  if (!bars.length) {
+    document.getElementById('vsChart').innerHTML = `<div class="empty-state">No approved/working platforms yet. Get approved to see actual vs potential income.</div>`;
+  } else {
+    const maxVal = Math.max(...bars.map(b => Math.max(b.actual, b.potential)), 1);
+    document.getElementById('vsChart').innerHTML = bars.map(b => {
+      const wA = Math.round((b.actual / maxVal) * 100);
+      const wP = Math.round((b.potential / maxVal) * 100);
+      return `<div class="bar-row">
+        <div class="bar-label">${b.name.length > 14 ? b.name.slice(0,12)+'…' : b.name}</div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${wP}%;background:var(--surface2);position:absolute"></div>
+          <div class="bar-fill" style="width:${wA}%;background:var(--green);position:relative;z-index:1"></div>
+        </div>
+        <div class="bar-value">$${b.actual.toFixed(0)}/$${b.potential.toFixed(0)}</div>
+      </div>`;
+    }).join('');
+  }
+}
+
+// ============================
+// IMPORT / EXPORT
+// ============================
+function exportData() {
+  const data = JSON.stringify({platforms, earnings, exportedAt: new Date().toISOString()}, null, 2);
+  const blob = new Blob([data], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `ai-training-tracker-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.platforms) platforms = data.platforms;
+      if (data.earnings) earnings = data.earnings;
+      save();
+      render();
+      alert('Data imported successfully!');
+    } catch(err) {
+      alert('Import failed: invalid JSON file');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ============================
+// MAIN RENDER
+// ============================
+function render() {
+  const activeTab = document.querySelector('.tab.active')?.dataset.tab || 'dashboard';
+  switchTab(activeTab);
+}
+
+// ============================
+// INIT
+// ============================
+loadTheme();
+load();
+render();
+
+// Close modal on overlay click
+document.getElementById('modalOverlay').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeModal();
+});
+document.getElementById('earningsModalOverlay').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeEarningsModal();
+});
+
+// Add "Log Earning" button to earnings tab
+const earningsPanel = document.querySelector('#panel-earnings .panel-header');
+if (earningsPanel && !earningsPanel.querySelector('.btn-primary')) {
+  const btn = document.createElement('button');
+  btn.className = 'btn btn-primary btn-sm';
+  btn.textContent = '+ Log Earning';
+  btn.onclick = () => openEarningsModal();
+  earningsPanel.appendChild(btn);
+}
+</script>
+
+</body>
+</html>
