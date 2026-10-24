@@ -183,6 +183,7 @@ header{
 .tier-1{background:var(--green-glow);color:var(--green);border:1px solid var(--green-dim)}
 .tier-2{background:var(--yellow-glow);color:var(--yellow);border:1px solid var(--yellow-dim)}
 .tier-3{background:var(--accent-glow);color:var(--accent);border:1px solid var(--accent-dim)}
+.tier-4{background:var(--red-glow);color:var(--red);border:1px solid var(--red-dim)}
 .platform-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .status-pill{
   display:inline-flex;align-items:center;gap:4px;
@@ -609,6 +610,7 @@ footer{
             <option value="1">Tier 1 — Top Priority</option>
             <option value="2">Tier 2 — Second Wave</option>
             <option value="3">Tier 3 — Supplemental</option>
+            <option value="4">Tier 4 — Not Nigeria-eligible</option>
           </select>
         </div>
         <div class="form-group">
@@ -728,13 +730,13 @@ let currentFilter = 'all';
 let expandedCard = null;
 
 const DEFAULT_PLATFORMS = [
-  {name:"DataAnnotation.tech",tier:1,status:"not_applied",payMin:20,payMax:100,url:"https://app.dataannotation.tech/worker_signup",payment:"PayPal",role:"Coding ($50–100/hr), Generalist ($25–30/hr)",notes:"Coding track assessment takes 1–3 hrs. 10–20% pass rate. Merit-based.",dateApplied:"",dateApproved:""},
-  {name:"Outlier (Scale AI)",tier:1,status:"not_applied",payMin:15,payMax:50,url:"https://outlier.ai",payment:"PayPal, Bank",role:"Code review, Math/Reasoning, Writing",notes:"Nigeria explicitly accepted. Fastest onboarding. Select Code + Math tracks.",dateApplied:"",dateApproved:""},
-  {name:"Mercor",tier:1,status:"not_applied",payMin:16,payMax:200,url:"https://mercor.com/experts",payment:"Weekly (bank/Payoneer)",role:"AI Model Specialist, Engineering",notes:"20-min AI video interview. 3 retakes. Matched to multiple projects after.",dateApplied:"",dateApproved:""},
-  {name:"Handshake AI",tier:1,status:"not_applied",payMin:22,payMax:300,url:"https://joinhandshake.com/ai",payment:"Weekly pay",role:"Generalist ($22–30), Domain Expert ($80–150)",notes:"100+ open roles. Sign up → matched to projects. Weekly pay.",dateApplied:"",dateApproved:""},
-  {name:"Micro1",tier:1,status:"not_applied",payMin:30,payMax:175,url:"https://jobs.micro1.ai",payment:"Payoneer, PayPal, Bank",role:"RLHF, Domain Expert (GIS/ML)",notes:"AI-assisted technical interview. Emphasize GIS/ML domain expertise.",dateApplied:"",dateApproved:""},
+  {name:"DataAnnotation.tech",tier:1,status:"not_applied",payMin:20,payMax:100,url:"https://app.dataannotation.tech/worker_signup",payment:"PayPal",role:"Coding ($50–100/hr), Generalist ($25–30/hr)",notes:"Coding track assessment takes 1–3 hrs. Reported ~6-country English-market restriction (US/CA/AU/NZ/UK/IE) — mixed reports on Nigeria; low odds, don't spend days on it. PayPal must route to a withdrawable account.",dateApplied:"",dateApproved:""},
+  {name:"Outlier (Scale AI)",tier:4,status:"not_applied",payMin:15,payMax:50,url:"https://outlier.ai",payment:"PayPal, Bank",role:"Code review, Math/Reasoning, Writing",notes:"NOT eligible for Nigeria-based applicants — Nigeria absent from Outlier's official country list (verified 24 Oct 2026 on outlier.ai/legal/flexible-working-guidelines, effective 15 Jul 2026). Diaspora-only. Do not apply with VPN.",dateApplied:"",dateApproved:""},
+  {name:"Mercor",tier:1,status:"not_applied",payMin:16,payMax:200,url:"https://work.mercor.com/explore",payment:"Weekly Stripe or Wise",role:"Science pool $60-120/hr; Odin family $50-60/hr; median listing ~$75/hr",notes:"Nigeria CONFIRMED on Mercor's payment supported-countries list (talent.docs.mercor.com/policies/supported-countries, verified 24 Oct 2026) — Stripe payout works for Nigerian banks. Apply at mercor.com/experts → 20-min AI interview (3 retakes, latest attempt counts) → matched to projects. Referral: 20% of referee earnings (cap 4x their rate on first role).",dateApplied:"",dateApproved:""},
+  {name:"Handshake AI",tier:4,status:"not_applied",payMin:22,payMax:300,url:"https://joinhandshake.com/ai",payment:"Weekly",role:"Generalist, Domain Expert, GIS Analyst (up to $85/hr), QGIS Specialist (up to $125/hr)",notes:"Standard fellowship requires US work authorization (SSN/ITIN + visa status) — not open to Nigeria-based applicants (verified 24 Oct 2026). International participation is invite-only via partner labs. Do not apply now.",dateApplied:"",dateApproved:""},
+  {name:"Micro1",tier:1,status:"not_applied",payMin:30,payMax:175,url:"https://jobs.micro1.ai",payment:"Stripe/Wise; Payoneer for some roles",role:"Domain Expert — live GIS/geospatial Expert + QGIS Expert listings (Oct 2026)",notes:"Nigeria OK. AI-assisted technical interview. Emphasize GIS/ML domain expertise. ID verification: use passport, NIN rejected.",dateApplied:"",dateApproved:""},
   {name:"Alignerr",tier:2,status:"not_applied",payMin:25,payMax:150,url:"https://alignerr.com/jobs",payment:"Per project",role:"Domain Expert ($35–125), Cognitive labeling",notes:"AI interviewer 'Zara' + background check. Backed by Labelbox.",dateApplied:"",dateApproved:""},
-  {name:"Turing",tier:2,status:"not_applied",payMin:40,payMax:150,url:"https://developers.turing.com/signup",payment:"Contract-based",role:"Python LLM Trainer, LLM Task Trainer",notes:"Hiring LLM Task Trainers in Nigeria (confirmed LinkedIn). Coding test + interview.",dateApplied:"",dateApproved:""},
+  {name:"Turing",tier:2,status:"not_applied",payMin:40,payMax:150,url:"https://developers.turing.com/signup",payment:"Contract-based",role:"Python LLM Trainer, LLM Task Trainer, Agentic Trainer",notes:"ACTIVE in Nigeria (Oct 2026): 'Remote LLM Trainer (Agent Function Call)' + LLM Agentic Trainer roles posted on LinkedIn NG. Coding test + interview.",dateApplied:"",dateApproved:""},
   {name:"Invisible Technologies",tier:2,status:"not_applied",payMin:30,payMax:200,url:"https://invisible.co",payment:"Per project",role:"SWE Infrastructure, Generalist",notes:"Long-term team projects. Selective onboarding. Hubstaff tracking.",dateApplied:"",dateApproved:""},
   {name:"Surge AI",tier:2,status:"not_applied",payMin:15,payMax:50,url:"https://surgehq.ai/careers",payment:"Bank, partners",role:"LLM red-teaming, RLHF",notes:"Invite/referral ONLY. Network on Reddit r/AiTraining_Annotation or Discord.",dateApplied:"",dateApproved:""},
   {name:"OneForma (Milky Way)",tier:3,status:"not_applied",payMin:10,payMax:30,url:"https://oneforma.com",payment:"PayPal, Payoneer",role:"Multilingual, Milky Way Project",notes:"Certification-based onboarding. Good for building experience.",dateApplied:"",dateApproved:""},
@@ -1029,7 +1031,7 @@ function renderPlatforms() {
   }
 
   const statusLabels = {not_applied:'Not Applied',applied:'Applied',assessment:'Assessment',interview:'Interview',approved:'Approved',working:'Working',rejected:'Rejected',paused:'Paused'};
-  const tierColors = {1:'tier-1',2:'tier-2',3:'tier-3'};
+  const tierColors = {1:'tier-1',2:'tier-2',3:'tier-3',4:'tier-4'};
 
   list.innerHTML = filtered.sort((a,b) => (a.tier||9) - (b.tier||9)).map(p => {
     const id = p.id || '';
@@ -1064,7 +1066,7 @@ function renderPlatforms() {
             </div>
             <div class="detail-item">
               <span class="detail-label">Tier</span>
-              <span class="detail-value">${p.tier === 1 ? 'Tier 1 — Top Priority' : p.tier === 2 ? 'Tier 2 — Second Wave' : 'Tier 3 — Supplemental'}</span>
+              <span class="detail-value">${p.tier === 1 ? 'Tier 1 — Top Priority' : p.tier === 2 ? 'Tier 2 — Second Wave' : p.tier === 4 ? 'Tier 4 — NOT Nigeria-eligible' : 'Tier 3 — Supplemental'}</span>
             </div>
             <div class="detail-item">
               <span class="detail-label">Date Applied</span>
